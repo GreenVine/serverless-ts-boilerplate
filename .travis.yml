@@ -1,0 +1,33 @@
+sudo: required
+language: node_js
+node_js: '8.10'
+
+cache:
+  directories:
+    - node_modules
+    - .serverless
+
+jobs:
+  include:
+    - # Set Serverless Debug
+      if: branch IN (develop, staging)
+      env: SLS_DEBUG=*
+
+# If no "script" section presented, Travis will build
+# and test your project automatically using predefined
+# rules. To overwrite this behavior, uncomment the line
+# below and optionally write your own additional commands:
+#
+# script: ''
+
+before_deploy:
+  - npm install -g serverless
+  - export API_STAGE=`if [ "$TRAVIS_BRANCH" == "master" ]; then echo "latest"; else echo $TRAVIS_BRANCH; fi`
+  - sls create_domain # Create API Gateway custom domain
+
+deploy:
+  provider: script
+  script: sls deploy
+  on:
+    all_branches: true
+    condition: $TRAVIS_BRANCH =~ ^master|develop|staging$

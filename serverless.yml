@@ -1,0 +1,52 @@
+service: ${self:custom.naming.fullDashName}
+provider:
+  name: aws
+  runtime: nodejs8.10
+  region: ${env:AWS_REGION, 'us-east-1'}
+  memorySize: 128
+  timeout: 10
+  stage: ${self:custom.stage}
+plugins:
+- serverless-webpack
+- serverless-offline
+- serverless-domain-manager
+custom:
+  # Naming Conventions
+  naming:
+    fullName: ServerlessTypescriptBoilerplate
+    fullDashName: serverless-ts-boilerplate
+    shortName: sls-boilerplate
+  # API Gateway Custom Domains
+  # customDomain:
+  #   domainName: ${env:API_DOMAIN}
+  #   stage: ${self:custom.stage}
+  #   basePath: ${env:API_BASEPATH, self:custom.stage}
+  #   certificateName: ${env:API_CERT_NAME}
+  #   createRoute53Record: ${env:API_CREATE_ROUTE53, 'true'}
+  #   endpointType: ${env:API_ENDPOINT_TYPE, 'edge'}
+  stage: ${env:API_STAGE, 'staging'}
+  webpackIncludeModules: true
+resources:
+  Resources:
+    ApiGatewayRestApi:
+      Type: AWS::ApiGateway::RestApi
+      Properties:
+        # API Gateway Name
+        Name: ${env:API_NAME, self:custom.naming.fullName}
+functions:
+  helloHandler:
+    # Lambda Function Name
+    name: ${self:custom.naming.shortName}-hello
+    # Lambda Function Description
+    description: ${self:custom.naming.fullName} Hello Handler
+    # Lambda Handler
+    # handler: handlers/hello.default
+    handler: src/handlers/hello.helloHandler
+    # API Gateway Configuration
+    events:
+    - http:
+        path: service/hello
+        method: get
+    # Function-specific Environment Variables
+    # environment:
+    #   MyPerFunctionEnv: foo
